@@ -1,4 +1,5 @@
 const Twitter = require('twitter');
+const { getText, updateStage, updateDate, updateLog } = require('../api/notion');
 
 const twitter = new Twitter({
     consumer_key: process.env.TWITTER_API,
@@ -7,17 +8,34 @@ const twitter = new Twitter({
     access_token_secret: process.env.AccessToken_SECRET
 });
 
-const tweet = async () => {
-    const { getText } = require('../api/notion');
+const tweetText = async () => {
+    const today = new Date().toISOString()
     const text = await getText();
 
-    const params = {
-        status: text,
-    }
+    if (text.length === 0) {
+        console.log("no tweet!");
+    } else {
+        const page_id = text[0].data.id
 
-    twitter.post('statuses/update', params, (error, tweets, response) => {
-        console.log(error || tweets);
-    });
+        if (text[0].number >= 140) {
+            updateStage(page_id, "投稿しない/できない")
+        } else {
+            const params = {
+                status: text[0].text,
+            }
+
+            twitter.post('statuses/update', params, (error, result) => {
+                console.log(error || result);
+                if (error) {
+                    updateStage(page_id, "投稿しない/できない")
+                    // updateLog(page_id, error[0].message)
+                } else {
+                    updateStage(page_id, "公開済み")
+                    // updateDate(page_id, today);
+                }
+            });
+        }
+    }
 };
 
-module.exports = { tweet };
+module.exports = { tweetText };

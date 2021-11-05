@@ -4,34 +4,72 @@ const notion = new Client({
     auth: process.env.NOTION_TOKEN,
 });
 
-const database_id = process.env.NOTION_DATABASE_ID;
-
 const getText = async () => {
-    const query = {
-        method: "POST",
-        path: `databases/${database_id}/query`,
-        page_size: 1,
+    const { results } = await notion.databases.query({
+        database_id: process.env.NOTION_DATABASE_ID,
         filter: {
             property: 'ステージ',
             select: {
-                name: "公開準備完了",
+                equals: "公開準備完了",
             },
         },
-    };
-
-    const { results } = await notion.request(query);
+    });
 
     const data = results.map((page) => {
-        console.log(page);
         return {
             data: page,
             id: page.id,
-            tweet: page.properties.Name.title[0].text.content,
-            stage: page.properties.ステージ.select.name,
+            text: page.properties.ツイート.title[0].text.content,
+            date: page.properties.公開日.date,
+            number: page.properties.文字数.formula.number,
         };
     });
 
     return data;
 };
 
-module.exports = { getText };
+const updateStage = async (page_id, select) => {
+    notion.pages.update({
+        page_id: page_id,
+        properties: {
+            "ステージ": {
+                select: {
+                    name: select
+                },
+            },
+        },
+    });
+};
+
+const updateDate = async (page_id, date) => {
+    await notion.pages.update({
+        page_id: page_id,
+        properties: {
+            "公開日": {
+                "date": {
+                    "start": date
+                },
+            }
+        },
+    });
+};
+
+const updateLog = async (page_id, log) => {
+    await notion.pages.update({
+        page_id: page_id,
+        properties: {
+            "エラー": {
+                "rich_text": [
+                    {
+                        "type": "text",
+                        "text": {
+                            "content": log
+                        }
+                    }
+                ]
+            },
+        },
+    });
+};
+
+module.exports = { getText, updateStage, updateDate, updateLog };
