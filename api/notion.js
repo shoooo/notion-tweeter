@@ -16,10 +16,16 @@ const getText = async () => {
     });
 
     const data = results.map((page) => {
+        let text = "";
+
+        for (i = 0; i < page.properties.ツイート.title.length; i++) {
+            text += page.properties.ツイート.title[i].text.content;
+        }
+
         return {
             data: page,
             id: page.id,
-            text: page.properties.ツイート.title[0].text.content,
+            text: text,
             date: page.properties.公開日.date,
             number: page.properties.文字数.formula.number,
         };
