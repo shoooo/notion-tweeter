@@ -26,16 +26,16 @@ const tweetText = async () => {
                 status: text[0].text,
             }
 
-            // twitter.post('statuses/update', params, (error, result) => {
-            //     console.log(error || result);
-            //     if (error) {
-            //         updateStage(page_id, "投稿しない/できない")
-            //         // updateLog(page_id, error[0].message)
-            //     } else {
-            //         updateStage(page_id, "公開済み")
-            //         // updateDate(page_id, today);
-            //     }
-            // });
+            twitter.post('statuses/update', params, (error, result) => {
+                console.log(error || result);
+                if (error) {
+                    updateStage(page_id, "投稿しない/できない")
+                    // updateLog(page_id, error[0].message)
+                } else {
+                    updateStage(page_id, "公開済み")
+                    // updateDate(page_id, today);
+                }
+            });
         }
     }
 };
